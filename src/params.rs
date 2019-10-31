@@ -15,6 +15,10 @@ pub struct Params {
     #[structopt(long = "mvc", default_value = "?")]
     pub output_missing_value: char,
 
+    /// Print the output data dimentions
+    #[structopt(short, long)]
+    pub print_dims: bool, 
+
     pub input_file: Option<PathBuf>,
     pub output_file: Option<PathBuf>,
 }
