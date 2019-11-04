@@ -16,8 +16,8 @@ pub struct Params {
     pub output_line_break: char,
 
     /// Missing value substitution character
-    #[structopt(long = "mvc")]
-    pub output_missing_value: Option<char>,
+    #[structopt(long = "mvc", default_value = "")]
+    pub output_missing_value: char,
 
     /// Print the output data dimentions
     #[structopt(short, long)]

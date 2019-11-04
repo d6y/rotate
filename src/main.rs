@@ -28,6 +28,7 @@ fn main() -> io::Result<()> {
         params.input_field_separator,
         params.output_field_separator,
         params.output_line_break,
+        params.output_missing_value,
     )?;
 
     if params.print_dims {
@@ -48,6 +49,7 @@ fn rotate(
     input_separator: char,
     output_separator: char,
     output_line_break: char,
+    output_missing_val: char,
 ) -> io::Result<Dims> {
     let input = BufReader::new(raw_input);
     let mut output = BufWriter::new(raw_output);
@@ -73,6 +75,9 @@ fn rotate(
     let break_string = output_line_break.to_string();
     let break_bytes = break_string.as_bytes();
 
+    let missing_string = output_missing_val.to_string();
+    let missing_bytes = missing_string.as_bytes();
+
     for row_num in 0..num_rows {
         let mut write_separator = false;
         for col in columns.iter() {
@@ -81,7 +86,10 @@ fn rotate(
             } else {
                 output.write_all(separator)?;
             }
-            output.write_all(col[row_num].as_bytes())?; // Will panic if there are not enough rows.
+
+            let cell = col[row_num].as_bytes(); // Will panic if there are not enough rows
+            let output_cell = if cell.is_empty() { missing_bytes } else { cell };
+            output.write_all(output_cell)?;
         }
         output.write_all(break_bytes)?;
     }
