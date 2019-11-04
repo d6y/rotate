@@ -60,11 +60,7 @@ fn rotate(
         // A line of input becomes a column of output
         let line = maybe_line?;
         if !line.is_empty() {
-
-        let column: Vec<String> = line
-            .split(input_separator)
-            .map(|s| s.to_owned())
-            .collect();
+            let column: Vec<String> = line.split(input_separator).map(|s| s.to_owned()).collect();
 
             columns.push(column);
         }
@@ -92,10 +88,18 @@ fn rotate(
             }
 
             if let Some(cell) = col.get(row_num) {
-                let output_cell = if cell.is_empty() { missing_bytes } else { cell.as_bytes() };
+                let output_cell = if cell.is_empty() {
+                    missing_bytes
+                } else {
+                    cell.as_bytes()
+                };
                 output.write_all(output_cell)?;
             } else {
-                panic!("expected value at input row {} column {}", 1+col_num, 1+row_num);
+                panic!(
+                    "expected value at input row {} column {}",
+                    1 + col_num,
+                    1 + row_num
+                );
             }
         }
         output.write_all(break_bytes)?;
