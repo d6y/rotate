@@ -49,7 +49,7 @@ fn rotate(
     input_separator: char,
     output_separator: char,
     output_line_break: char,
-    output_missing_val: char,
+    output_missing_val: String,
 ) -> io::Result<Dims> {
     let input = BufReader::new(raw_input);
     let mut output = BufWriter::new(raw_output);
@@ -58,11 +58,16 @@ fn rotate(
 
     for maybe_line in input.lines() {
         // A line of input becomes a column of output
-        let column: Vec<String> = maybe_line?
+        let line = maybe_line?;
+        if !line.is_empty() {
+
+        let column: Vec<String> = line
             .split(input_separator)
             .map(|s| s.to_owned())
             .collect();
-        columns.push(column);
+
+            columns.push(column);
+        }
     }
 
     // Output dimentions will be:
@@ -75,21 +80,23 @@ fn rotate(
     let break_string = output_line_break.to_string();
     let break_bytes = break_string.as_bytes();
 
-    let missing_string = output_missing_val.to_string();
-    let missing_bytes = missing_string.as_bytes();
+    let missing_bytes = output_missing_val.as_bytes();
 
     for row_num in 0..num_rows {
         let mut write_separator = false;
-        for col in columns.iter() {
+        for (col_num, col) in columns.iter().enumerate() {
             if !write_separator {
                 write_separator = true;
             } else {
                 output.write_all(separator)?;
             }
 
-            let cell = col[row_num].as_bytes(); // Will panic if there are not enough rows
-            let output_cell = if cell.is_empty() { missing_bytes } else { cell };
-            output.write_all(output_cell)?;
+            if let Some(cell) = col.get(row_num) {
+                let output_cell = if cell.is_empty() { missing_bytes } else { cell.as_bytes() };
+                output.write_all(output_cell)?;
+            } else {
+                panic!("expected value at input row {} column {}", 1+col_num, 1+row_num);
+            }
         }
         output.write_all(break_bytes)?;
     }
