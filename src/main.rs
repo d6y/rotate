@@ -51,25 +51,14 @@ fn rotate(
     output_line_break: char,
     output_missing_val: String,
 ) -> io::Result<Dims> {
-    let input = BufReader::new(raw_input);
-    let mut output = BufWriter::new(raw_output);
 
-    let mut columns = Vec::new();
-
-    for maybe_line in input.lines() {
-        // A line of input becomes a column of output
-        let line = maybe_line?;
-        if !line.is_empty() {
-            let column: Vec<String> = line.split(input_separator).map(|s| s.to_owned()).collect();
-
-            columns.push(column);
-        }
-    }
+    let columns = read_columns(raw_input, input_separator)?;
 
     // Output dimentions will be:
     let num_cols = columns.len();
     let num_rows = columns[0].len();
 
+    // Byte slices we need to write:
     let sep_string = output_separator.to_string();
     let separator = sep_string.as_bytes();
 
@@ -77,6 +66,11 @@ fn rotate(
     let break_bytes = break_string.as_bytes();
 
     let missing_bytes = output_missing_val.as_bytes();
+
+    // Write
+    let estimated_cell_size = 20; // TODO: Sample an average from cells?
+    let estimated_row_length = columns.len() * estimated_cell_size;
+    let mut output = BufWriter::with_capacity(estimated_row_length, raw_output);
 
     for row_num in 0..num_rows {
         let mut write_separator = false;
@@ -103,10 +97,29 @@ fn rotate(
             }
         }
         output.write_all(break_bytes)?;
+        output.flush()?;
     }
 
     Ok(Dims {
         rows: num_rows,
         cols: num_cols,
     })
+}
+
+fn read_columns(raw_input: Box<dyn Read>, input_separator: char) -> io::Result<Vec<Vec<String>>> {
+
+    let input = BufReader::new(raw_input);
+
+    let mut columns = Vec::new();
+
+    for maybe_line in input.lines() {
+        // A line of input becomes a column of output
+        let line = maybe_line?;
+        if !line.is_empty() {
+            let column: Vec<String> = line.split(input_separator).map(|s| s.to_owned()).collect();
+            columns.push(column);
+        }
+    }
+
+    Ok(columns)
 }
